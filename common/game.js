@@ -143,12 +143,13 @@ Game.prototype.over = function() {
  */
 Game.prototype.join = function(id) {
   var x, y, vx, vy;
-  switch (this.getPlayerCount() % 2) {
+  var numPlayers = this.getPlayerCount();
+  switch (numPlayers % 2) {
     case 0:
       x = Game.WIDTH/2; y = 20; vx = 0.1; vy = 0.1;
       break;
     case 1:
-      x = Game.WIDTH/2; y = Game.HEIGHT - 20; vx = -0.1; vy = 0.1;
+      x = Game.WIDTH/2; y = Game.HEIGHT - 20; vx = -0.1; vy = -0.1;
       break;
     // case 2:
     //   x = 0; y = 480; vx = 0.1; vy = -0.1;
@@ -167,6 +168,11 @@ Game.prototype.join = function(id) {
     r: 20
   });
   this.state.objects[player.id] = player;
+
+  //If this was the second player, start the ball
+  if (numPlayers == 1) {
+      this.startBalls();
+  } 
   return player.id;
 };
 
@@ -472,6 +478,22 @@ Blob.prototype.toJSON = function() {
     }
   }
   return obj;
+};
+
+Game.prototype.pauseBalls = function() {
+  for (var i in this.state.objects) {
+    this.state.objects[i].vx = 0;
+    this.state.objects[i].vy = 0;
+  }
+};
+
+Game.prototype.startBalls = function() {
+  for (var i in this.state.objects) {
+    if (this.state.objects[i].type == "blob") {
+      this.state.objects[i].vx = 1;
+      this.state.objects[i].vy = 1;
+    }
+  }
 };
 
 /**

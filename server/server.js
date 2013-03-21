@@ -37,7 +37,7 @@ io.sockets.on('connection', function(socket) {
     if (!game.blobExists(playerId)) {
       return;
     }
-    // Update the game game
+    // Update the game state
     game.shoot(playerId, data.direction);
     data.playerId = playerId;
     data.timeStamp = (new Date()).valueOf();
@@ -64,6 +64,9 @@ io.sockets.on('connection', function(socket) {
     }
     playerId = game.join(data.name);
     data.timeStamp = new Date();
+
+    
+
     // Broadcast that client has joined
     socket.broadcast.emit('join', data);
     data.isme = true;

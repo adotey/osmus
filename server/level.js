@@ -40,8 +40,8 @@ LevelGenerator.prototype.createNonRandomBlob_ = function() {
     x: this.width / 2,
     y: this.height / 2,
     r: this.maxRadius,
-    vx: 1,
-    vy: 1
+    vx: 0,
+    vy: 0
   };
 };
 
