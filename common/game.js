@@ -56,14 +56,26 @@ Game.prototype.computeState = function(delta) {
   // adjustments accordingly.
   for (var i in newObjects) {
     var o = newObjects[i];
+
+    var paddle = null;
+    if (o.type == "player") {
+      paddle = o;
+    }
     for (var j in newObjects) {
       var p = newObjects[j];
-      // Check collisions
-      if (o !== p && o.intersects(p)) {
-        // Transfer masses around
-        this.transferAreas_(o, p, delta);
+      
+      var ball = null;
+      if (p.type == "blob") {
+        ball = p;
+
+        if (paddle != null && ball != null) {
+          if (ball.intersectsPaddle(paddle)) {
+            this.bounce_(ball, paddle);
+          }
+        }
       }
     }
+
     // At this point, o is not collided with any objects.
     // But it may be out of bounds. Have it go back in-bound and
     // bounce off.
@@ -71,30 +83,15 @@ Game.prototype.computeState = function(delta) {
       // Do some math, bounce and reposition.
       this.repositionXInBounds_(o);
     }
-
-    // Get the largest blob in the world.
-    if (!largest) {
-      largest = o;
-    }
-    if (o.r > largest.r) {
-      largest = o;
-    }
-    total += o.r;
   }
-
-  // Victory conditions!
-  // if (largest.r > total/2) {
-  //   console.log('game over!');
-  //   this.callback_('victory', {id: largest.id});
-  // }
 
   for (var i in newObjects) {
     if (!this.yInBounds_(newObjects[i])) {
+      var winId = this.paddleFarthestFromBall(newObjects[i], newObjects);
       console.log('game over!');
-      this.callback_('victory', {id: largest.id});
+      this.callback_('victory', {id: winId});
     }
   }
-  
 
   return newState;
 };
@@ -148,7 +145,7 @@ Game.prototype.join = function(id) {
       x = Game.WIDTH/2; y = 25; vx = 0; vy = 0;
       break;
     case 1:
-      x = Game.WIDTH/2; y = Game.HEIGHT - 25; vx = 0; vy = 0;
+      x = Game.WIDTH/2; y = Game.HEIGHT - 25 - 25; vx = 0; vy = 0;
       break;
     // case 2:
     //   x = 0; y = 480; vx = 0.1; vy = -0.1;
@@ -165,7 +162,8 @@ Game.prototype.join = function(id) {
     vx: vx,
     vy: vy,
     r: 20,
-    maxX: 0
+    targetX: 0,
+    rectW: 100
   });
   this.state.objects[player.id] = player;
 
@@ -225,16 +223,10 @@ Game.prototype.shoot = function(id, direction, timeStamp) {
 Game.prototype.move = function (id, mouseX, playerX) {
   var player = this.state.objects[id];
 
-  player.maxX = mouseX;
-
-  var direction = mouseX - playerX;
-  // Move in positive x or negative x direction
-  if (direction > 0) {
-    player.vx = 2;
-  } else if (direction < 0) {
-    player.vx = -2;
-  } else {
-    player.vx = 0;
+  player.x = mouseX - 50;
+  if (!this.xInBounds_(player)) {
+    // Reposition paddle in bounds
+    this.repositionXInBounds_(player);
   }
 };
 
@@ -247,6 +239,36 @@ Game.prototype.getPlayerCount = function() {
     }
   }
   return count;
+};
+
+Game.prototype.paddleFarthestFromBall = function(ball, objects) {
+  var paddle1;
+  var paddle2;
+  var paddleCount = 0;
+
+  // Get both paddles
+  for (var i in objects) {
+    if (paddleCount == 2) {
+      break;
+    } else if (objects[i].type == "player") {
+      if (paddle1) {
+        paddle2 = objects[i];
+      } else {
+        paddle1 = objects[i];
+      }
+      paddleCount += 1;
+    }
+  }
+
+  // Get the id of the paddle that's farthest from the ball
+  var farthestId;
+  if (Math.abs(ball.y - paddle1.y) > Math.abs(ball.y - paddle2.y)) {
+    farthestId = paddle1.id;
+  } else {
+    farthestId = paddle2.id;
+  }
+
+  return farthestId;
 };
 
 /***********************************************
@@ -337,6 +359,21 @@ Game.prototype.transferAreas_ = function(o, p, delta) {
   //console.log('sanity check: total area', small.r + big.r);
 };
 
+
+/**
+ * Makes the ball bounce off of the paddle.
+ */
+Game.prototype.bounce_ = function(ball, paddle) {
+  //TODO more advanced bouncing depending on paddle position
+  ball.vy = -ball.vy;
+
+  if (paddle.y == 25) {
+    ball.y = paddle.y + 25 + ball.r;
+  } else {
+    ball.y = paddle.y - ball.r;
+  }
+};
+
 /**
  *
  */
@@ -348,7 +385,11 @@ Game.prototype.inBounds_ = function(o) {
 
 Game.prototype.xInBounds_ = function(o) {
   // For now, use a rectangular field.
-  return o.r < o.x && o.x < (Game.WIDTH - o.r);
+  if (o.type == "player") {
+    return 0 < o.x && o.x < (Game.WIDTH - o.rectW);
+  } else {
+    return o.r < o.x && o.x < (Game.WIDTH - o.r);
+  }
 };
 
 Game.prototype.yInBounds_ = function(o) {
@@ -382,14 +423,24 @@ Game.prototype.repositionInBounds_ = function(o) {
  *
  */
 Game.prototype.repositionXInBounds_ = function(o) {
-  var maxWidth = Game.WIDTH - o.r;
-  var maxHeight = Game.HEIGHT - o.r;
-  if (o.x < o.r) {
-    o.x = o.r;
-    o.vx = -o.vx;
-  } else if (o.x > maxWidth) {
-    o.x = maxWidth;
-    o.vx = -o.vx;
+  if (o.type == "player") {
+    var maxWidth = Game.WIDTH - o.rectW;
+    if (o.x < 0) {
+      o.x = 0;
+      o.vx = 0;
+    } else if (o.x > maxWidth) {
+      o.x = maxWidth;
+      o.vx = 0;
+    }
+  } else {
+    var maxWidth = Game.WIDTH - o.r;
+    if (o.x < o.r) {
+      o.x = o.r;
+      o.vx = -o.vx;
+    } else if (o.x > maxWidth) {
+      o.x = maxWidth;
+      o.vx = -o.vx;
+    }
   }
 };
 
@@ -439,7 +490,8 @@ var Blob = function(params) {
   this.r = params.r;
   this.vx = params.vx;
   this.vy = params.vy;
-  this.maxX = params.maxX
+  this.targetX = params.targetX;
+  this.rectW = params.rectW;
   if (!this.type) {
     this.type = 'blob';
   }
@@ -452,16 +504,51 @@ var Blob = function(params) {
  * @returns {number} Amount of overlap
  */
 Blob.prototype.overlap = function(blob) {
-  var overlap = blob.r + this.r - this.distanceFrom(blob);
+  var overlap = blob.r + this.r - this.distanceFromBlob(blob);
   return (overlap > 0 ? overlap : 0);
 };
 
 Blob.prototype.intersects = function(blob) {
-  return this.distanceFrom(blob) < blob.r + this.r;
+  return this.distanceFromBlob(blob) < blob.r + this.r;
 };
 
-Blob.prototype.distanceFrom = function(blob) {
+Blob.prototype.distanceFromBlob = function(blob) {
   return Math.sqrt(Math.pow(this.x - blob.x, 2) + Math.pow(this.y - blob.y, 2));
+};
+
+Blob.prototype.intersectsPaddle = function(paddle) {
+  return this.insidePaddle(paddle);
+};
+
+Blob.prototype.insidePaddle = function(paddle) {
+  var ballLeftEdge = this.x - this.r;
+  var ballRightEdge = this.x + this.r;
+  var ballTopEdge = this.y - this.r;
+  var ballBottomEdge = this.y + this.r;
+  var padLeftEdge = paddle.x;
+  var padRightEdge = paddle.x + 100;
+
+  // Bottom paddle case
+  if (paddle.y == Game.HEIGHT - 25 - 25) { //TODO learn how to make constants for
+                                           //things like this
+    if ((ballLeftEdge < padRightEdge && ballLeftEdge > padLeftEdge &&
+         ballTopEdge < paddle.y + 25 && ballBottomEdge > paddle.y) ||
+        (ballRightEdge > padLeftEdge && ballRightEdge < padRightEdge &&
+         ballTopEdge < paddle.y + 25 && ballBottomEdge > paddle.y )) {
+      return true;
+    }
+  } else {
+  // Top paddle case  
+    if ((ballLeftEdge < padRightEdge && ballLeftEdge > padLeftEdge &&
+         ballBottomEdge > paddle.y && ballTopEdge < paddle.y + 25) ||
+        (ballRightEdge > padLeftEdge && ballRightEdge < padRightEdge &&
+         ballBottomEdge > paddle.y && ballTopEdge < paddle.y + 25)) {
+      return true;
+    }
+  }
+
+  return false;
+
 };
 
 Blob.prototype.area = function() {
@@ -483,14 +570,7 @@ Blob.prototype.transferArea = function(area) {
  * Create a new state for this blob in the future
  */
 Blob.prototype.computeState = function(delta) {
-  // Update player paddle
   var newBlob = new this.constructor(this.toJSON());
-  if (this.type == "player") {
-    if (Math.abs(this.x - this.maxX) < 5) {
-      return newBlob;
-    }
-  }
-
   newBlob.x += this.vx * delta/10;
   newBlob.y += this.vy * delta/10;
   return newBlob;

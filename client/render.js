@@ -46,16 +46,20 @@ CanvasRenderer.prototype.render = function() {
 CanvasRenderer.prototype.renderObject_ = function(obj) {
   var ctx = this.context;
   ctx.fillStyle = (obj.type == "player" ? 'green' : 'red');
-  //TODO if player draw a rectangle
-  ctx.beginPath();
-  ctx.arc(obj.x, obj.y, obj.r, 0, 2 * Math.PI, true);
-  ctx.closePath();
-  ctx.fill();
+  
+  if (obj.type == "player") {
+    ctx.fillRect(obj.x, obj.y, 100, 25);
+  } else {
+    ctx.beginPath();
+    ctx.arc(obj.x, obj.y, obj.r, 0, 2 * Math.PI, true);
+    ctx.closePath();
+    ctx.fill();
+  }
   if (obj.type == 'player') {
     ctx.font = "8pt monospace";
     ctx.fillStyle = 'black';
     ctx.textAlign = 'center';
-    ctx.fillText(obj.id, obj.x, obj.y);
+    ctx.fillText(obj.id, obj.x + 50, obj.y + 12);
   }
 
 };
