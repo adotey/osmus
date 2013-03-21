@@ -9,9 +9,9 @@ var game = new Game();
 var gen = new level.Generator({
   width: Game.WIDTH,
   height: Game.HEIGHT,
-  maxSpeed: 0.1,
+  maxSpeed: 1,
   maxRadius: 15,
-  blobCount: 10
+  blobCount: 1
 });
 
 game.load(gen.generate());
@@ -58,8 +58,8 @@ io.sockets.on('connection', function(socket) {
       // Don't allow duplicate names.
       return;
     }
-    if (game.getPlayerCount() >= 4) {
-      // Don't allow more than 4 players.
+    if (game.getPlayerCount() >= 2) {
+      // Don't allow more than 2 players.
       return;
     }
     playerId = game.join(data.name);

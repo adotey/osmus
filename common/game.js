@@ -19,7 +19,7 @@ var Game = function() {
 Game.UPDATE_INTERVAL = Math.round(1000 / 30);
 Game.MAX_DELTA = 10000;
 Game.WIDTH = 640;
-Game.HEIGHT = 480;
+Game.HEIGHT = 960;
 Game.SHOT_AREA_RATIO = 0.02;
 Game.SHOT_SPEED_RATIO = 1;
 Game.PLAYER_SPEED_RATIO = 0.1;
@@ -35,6 +35,7 @@ Game.RESTART_DELAY = 1000;
 Game.prototype.computeState = function(delta) {
   var newState = {
     objects: {},
+    players: {},
     timeStamp: this.state.timeStamp + delta
   };
   var newObjects = newState.objects;
@@ -67,9 +68,9 @@ Game.prototype.computeState = function(delta) {
     // At this point, o is not collided with any objects.
     // But it may be out of bounds. Have it go back in-bound and
     // bounce off.
-    if (!this.inBounds_(o)) {
+    if (!this.xInBounds_(o)) {
       // Do some math, bounce and reposition.
-      this.repositionInBounds_(o);
+      this.repositionXInBounds_(o);
     }
 
     // Get the largest blob in the world.
@@ -81,11 +82,21 @@ Game.prototype.computeState = function(delta) {
     }
     total += o.r;
   }
+
   // Victory conditions!
-  if (largest.r > total/2) {
-    console.log('game over!');
-    this.callback_('victory', {id: largest.id});
+  // if (largest.r > total/2) {
+  //   console.log('game over!');
+  //   this.callback_('victory', {id: largest.id});
+  // }
+
+  for (var i in newObjects) {
+    if (!this.yInBounds_(newObjects[i])) {
+      console.log('game over!');
+      this.callback_('victory', {id: largest.id});
+    }
   }
+  
+
   return newState;
 };
 
@@ -132,19 +143,19 @@ Game.prototype.over = function() {
  */
 Game.prototype.join = function(id) {
   var x, y, vx, vy;
-  switch (this.getPlayerCount() % 4) {
+  switch (this.getPlayerCount() % 2) {
     case 0:
-      x = 0; y = 0; vx = 0.1; vy = 0.1;
+      x = Game.WIDTH/2; y = 20; vx = 0.1; vy = 0.1;
       break;
     case 1:
-      x = 640; y = 0; vx = -0.1; vy = 0.1;
+      x = Game.WIDTH/2; y = Game.HEIGHT - 20; vx = -0.1; vy = 0.1;
       break;
-    case 2:
-      x = 0; y = 480; vx = 0.1; vy = -0.1;
-      break;
-    case 3:
-      x = 640; y = 480; vx = -0.1; vy = -0.1;
-      break;
+    // case 2:
+    //   x = 0; y = 480; vx = 0.1; vy = -0.1;
+    //   break;
+    // case 3:
+    //   x = 640; y = 480; vx = -0.1; vy = -0.1;
+    //   break;
   }
   // Add the player to the world
   var player = new Player({
@@ -310,6 +321,17 @@ Game.prototype.inBounds_ = function(o) {
          o.r < o.y && o.y < (Game.HEIGHT - o.r);
 };
 
+Game.prototype.xInBounds_ = function(o) {
+  // For now, use a rectangular field.
+  return o.r < o.x && o.x < (Game.WIDTH - o.r);
+};
+
+Game.prototype.yInBounds_ = function(o) {
+  // For now, use a rectangular field.
+  return o.r < o.y && o.y < (Game.HEIGHT - o.r);
+};
+
+
 /**
  *
  */
@@ -328,6 +350,21 @@ Game.prototype.repositionInBounds_ = function(o) {
   } else if (o.y > maxHeight) {
     o.y = maxHeight;
     o.vy = -o.vy;
+  }
+};
+
+/**
+ *
+ */
+Game.prototype.repositionXInBounds_ = function(o) {
+  var maxWidth = Game.WIDTH - o.r;
+  var maxHeight = Game.HEIGHT - o.r;
+  if (o.x < o.r) {
+    o.x = o.r;
+    o.vx = -o.vx;
+  } else if (o.x > maxWidth) {
+    o.x = maxWidth;
+    o.vx = -o.vx;
   }
 };
 
@@ -438,7 +475,7 @@ Blob.prototype.toJSON = function() {
 };
 
 /**
- * Instance of a player (a kind of blob)
+ * Instance of a player (a paddle)
  */
 var Player = function(params) {
   this.name = params.name;

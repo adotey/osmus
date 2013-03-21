@@ -15,7 +15,7 @@ LevelGenerator.prototype.generate = function() {
   };
   var count = this.blobCount;
   while (count--) {
-    var blob = this.createRandomBlob_();
+    var blob = this.createNonRandomBlob_();
     state.objects[blob.id] = blob;
   }
   return state;
@@ -30,6 +30,18 @@ LevelGenerator.prototype.createRandomBlob_ = function() {
     r: Math.floor(Math.random() * this.maxRadius),
     vx: this.createRandomSpeed_(),
     vy: this.createRandomSpeed_()
+  };
+};
+
+LevelGenerator.prototype.createNonRandomBlob_ = function() {
+  return {
+    type: 'blob',
+    id: this.lastId++,
+    x: this.width / 2,
+    y: this.height / 2,
+    r: this.maxRadius,
+    vx: 1,
+    vy: 1
   };
 };
 
