@@ -68,6 +68,17 @@ socket.on('shoot', function(data) {
   game.shoot(data.playerId, data.direction, data.timeStamp);
 });
 
+// A client moves.
+socket.on('move', function(data) {
+  console.log('recv move', data.timeStamp, (new Date()).valueOf());
+  // Ensure that this client is alive.
+  if (!game.blobExists(data.playerId)) {
+    return;
+  }
+  // Update game state
+  game.move(data.playerId, data.mouseX, data.playerX);
+});
+
 // Get a time sync from the server
 socket.on('time', function(data) {
   // Compute how much we've skewed from the server since the last tick.

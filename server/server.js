@@ -45,6 +45,21 @@ io.sockets.on('connection', function(socket) {
     io.sockets.emit('shoot', data);
   });
 
+  // Client moves
+  socket.on('move', function(data) {
+    console.log('recv move', data);
+    // Check that the player is still alive
+    if (!game.blobExists(playerId)) {
+      return;
+    }
+    // Update the game state
+    game.move(playerId, data.mouseX, data.playerX);
+    data.playerId = playerId;
+    data.timeStamp = (new Date()).valueOf();
+    // Broadcast that move occured.
+    io.sockets.emit('move', data);
+  });
+
   socket.on('state', function(data) {
     socket.emit('state', {
       state: game.save()

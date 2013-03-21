@@ -35,7 +35,6 @@ Game.RESTART_DELAY = 1000;
 Game.prototype.computeState = function(delta) {
   var newState = {
     objects: {},
-    players: {},
     timeStamp: this.state.timeStamp + delta
   };
   var newObjects = newState.objects;
@@ -146,10 +145,10 @@ Game.prototype.join = function(id) {
   var numPlayers = this.getPlayerCount();
   switch (numPlayers % 2) {
     case 0:
-      x = Game.WIDTH/2; y = 20; vx = 0.1; vy = 0.1;
+      x = Game.WIDTH/2; y = 25; vx = 0; vy = 0;
       break;
     case 1:
-      x = Game.WIDTH/2; y = Game.HEIGHT - 20; vx = -0.1; vy = -0.1;
+      x = Game.WIDTH/2; y = Game.HEIGHT - 25; vx = 0; vy = 0;
       break;
     // case 2:
     //   x = 0; y = 480; vx = 0.1; vy = -0.1;
@@ -165,7 +164,8 @@ Game.prototype.join = function(id) {
     y: y,
     vx: vx,
     vy: vy,
-    r: 20
+    r: 20,
+    maxX: 0
   });
   this.state.objects[player.id] = player;
 
@@ -216,6 +216,25 @@ Game.prototype.shoot = function(id, direction, timeStamp) {
   if (player.r <= 2) {
     player.dead = true;
     this.callback_('dead', {id: player.id, type: player.type});
+  }
+};
+
+/**
+ * Called when a player moves
+ */
+Game.prototype.move = function (id, mouseX, playerX) {
+  var player = this.state.objects[id];
+
+  player.maxX = mouseX;
+
+  var direction = mouseX - playerX;
+  // Move in positive x or negative x direction
+  if (direction > 0) {
+    player.vx = 2;
+  } else if (direction < 0) {
+    player.vx = -2;
+  } else {
+    player.vx = 0;
   }
 };
 
@@ -420,6 +439,7 @@ var Blob = function(params) {
   this.r = params.r;
   this.vx = params.vx;
   this.vy = params.vy;
+  this.maxX = params.maxX
   if (!this.type) {
     this.type = 'blob';
   }
@@ -463,8 +483,14 @@ Blob.prototype.transferArea = function(area) {
  * Create a new state for this blob in the future
  */
 Blob.prototype.computeState = function(delta) {
-  // TODO: dampen vx and vy slightly?
+  // Update player paddle
   var newBlob = new this.constructor(this.toJSON());
+  if (this.type == "player") {
+    if (Math.abs(this.x - this.maxX) < 5) {
+      return newBlob;
+    }
+  }
+
   newBlob.x += this.vx * delta/10;
   newBlob.y += this.vy * delta/10;
   return newBlob;

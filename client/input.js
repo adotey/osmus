@@ -1,6 +1,7 @@
 (function(exports) {
 /**
  * Desktop input handler (ie. mouse, keyboard)
+ * with some touch support as well.
  */
 
 function DesktopInput(game) {
@@ -8,11 +9,19 @@ function DesktopInput(game) {
   var ctx = this;
 
   // Listen for mouse events on the canvas element
-  var canvas = document.getElementById('canvas');
-  canvas.addEventListener('click', function(e) {
-    _gaq.push(['_trackEvent', 'Shoot']);
-    ctx.onclick.call(ctx, e);
+  // var canvas = document.getElementById('canvas');
+  // canvas.addEventListener('click', function(e) {
+  //   _gaq.push(['_trackEvent', 'Shoot']);
+  //   ctx.onclick.call(ctx, e);
+  // });
+  //TODO remove click
+
+  canvas.addEventListener('mousemove', function(e) {
+    _gaq.push(['_trackEvent', 'Move']);
+    ctx.onmousemove.call(ctx, e);
   });
+
+  //TODO add touchstart, touchmove
 
   // Bind to the join button
   var join = document.getElementById('join');
@@ -49,6 +58,21 @@ DesktopInput.prototype.onmusic = function() {
 DesktopInput.prototype.onleave = function() {
   socket.emit('leave', {name: playerId});
 };
+
+DesktopInput.prototype.onmousemove = function(event) {
+  // Get the position of the click.
+  var cx = event.clientX - event.target.getBoundingClientRect().left;
+  // Get the current player.
+  var player = this.game.state.objects[playerId];
+  // Sometimes the player isn't there.
+  if (!player) {
+    return;
+  }
+  // Consider where the player is positioned.
+  var px = player.x;
+  // Send the corresponding move() command
+  socket.emit('move', {mouseX: cx, playerX: px});
+}
 
 DesktopInput.prototype.onclick = function(event) {
   // Get the position of the click.

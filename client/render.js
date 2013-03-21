@@ -46,6 +46,7 @@ CanvasRenderer.prototype.render = function() {
 CanvasRenderer.prototype.renderObject_ = function(obj) {
   var ctx = this.context;
   ctx.fillStyle = (obj.type == "player" ? 'green' : 'red');
+  //TODO if player draw a rectangle
   ctx.beginPath();
   ctx.arc(obj.x, obj.y, obj.r, 0, 2 * Math.PI, true);
   ctx.closePath();
