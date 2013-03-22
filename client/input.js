@@ -8,20 +8,23 @@ function DesktopInput(game) {
   this.game = game;
   var ctx = this;
 
-  // Listen for mouse events on the canvas element
-  // var canvas = document.getElementById('canvas');
-  // canvas.addEventListener('click', function(e) {
-  //   _gaq.push(['_trackEvent', 'Shoot']);
-  //   ctx.onclick.call(ctx, e);
-  // });
-  //TODO remove click
-
+  // Mouse paddle movement
   canvas.addEventListener('mousemove', function(e) {
-    _gaq.push(['_trackEvent', 'Move']);
+    _gaq.push(['_trackEvent', 'MouseMove']);
     ctx.onmousemove.call(ctx, e);
   });
 
-  //TODO add touchstart, touchmove
+  // Touch paddle movement
+  canvas.addEventListener('touchmove', function(e) {
+    _gaq.push(['_trackEvent', 'TouchMove']);
+    ctx.ontouch.call(ctx, e);
+  });
+
+  // Touch paddle movement
+  canvas.addEventListener('touchstart', function(e) {
+    _gaq.push(['_trackEvent', 'TouchMove']);
+    ctx.ontouch.call(ctx, e);
+  });
 
   // Bind to the join button
   var join = document.getElementById('join');
@@ -62,6 +65,23 @@ DesktopInput.prototype.onleave = function() {
 DesktopInput.prototype.onmousemove = function(event) {
   // Get the position of the click.
   var cx = event.clientX - event.target.getBoundingClientRect().left;
+  // Get the current player.
+  var player = this.game.state.objects[playerId];
+  // Sometimes the player isn't there.
+  if (!player) {
+    return;
+  }
+  // Consider where the player is positioned.
+  var px = player.x;
+  // Send the corresponding move() command
+  socket.emit('move', {mouseX: cx, playerX: px});
+}
+
+DesktopInput.prototype.ontouch = function(event) {
+  event.preventDefault();
+  // Get the position of the click.
+  var cx = event.targetTouches[0].clientX - 
+           event.target.getBoundingClientRect().left;
   // Get the current player.
   var player = this.game.state.objects[playerId];
   // Sometimes the player isn't there.

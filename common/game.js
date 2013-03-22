@@ -260,6 +260,16 @@ Game.prototype.paddleFarthestFromBall = function(ball, objects) {
     }
   }
 
+  // It's possible for there to only be one paddle (e.g. if one player leaves),
+  // so handle that
+  if (paddle1 == null && paddle2 == null) {
+    return 0;
+  } else if (paddle1 == null) {
+    return paddle2.id;
+  } else if (paddle2 == null) {
+    return paddle1.id;
+  }
+
   // Get the id of the paddle that's farthest from the ball
   var farthestId;
   if (Math.abs(ball.y - paddle1.y) > Math.abs(ball.y - paddle2.y)) {
