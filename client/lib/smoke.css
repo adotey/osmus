@@ -64,14 +64,15 @@
 }
 
 .dialog-prompt input {
-  margin: 0;
+  margin: 10px 0px 20px 0px;
   border: 0;
   font-family: sans-serif;
   outline: none;
   border: 1px solid #333;
   width: 97%;
+  height: 50px;
   background-color: #fff;
-  font-size: 15px;
+  font-size: 25px;
   padding: 5px;
 }
 
@@ -81,7 +82,8 @@
 }
 
 .smoke-base .dialog {
-  top: 25%;
+  top: 30%;
+  bottom: 50%;
   left: 25%;
   width: 50%;
 }
@@ -148,8 +150,8 @@ button.cancel {
     text-transform: none;
     background-color: #ebebeb;
     color: #333;
-    font-size:13px;
-    padding:7px 10px;
+    font-size:25px;
+    padding: 25px 40px;
     margin:0 10px;
 }
 

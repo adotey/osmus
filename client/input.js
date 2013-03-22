@@ -43,7 +43,7 @@ function DesktopInput(game) {
 
 DesktopInput.prototype.onjoin = function() {
   if (!playerId) {
-    smoke.prompt("what is your name", function(name) {
+    smoke.prompt("What is your name?", function(name) {
       if (name) {
         socket.emit('join', {name: name});
         document.querySelector('#join').style.display = 'none';

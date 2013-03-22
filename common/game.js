@@ -382,6 +382,10 @@ Game.prototype.bounce_ = function(ball, paddle) {
   } else {
     ball.y = paddle.y - ball.r;
   }
+
+  // Speed up ball
+  ball.vx += ball.vx * .1;
+  ball.vy += ball.vy * .1
 };
 
 /**

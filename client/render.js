@@ -56,10 +56,10 @@ CanvasRenderer.prototype.renderObject_ = function(obj) {
     ctx.fill();
   }
   if (obj.type == 'player') {
-    ctx.font = "8pt monospace";
+    ctx.font = "bold 12pt arial";
     ctx.fillStyle = 'black';
     ctx.textAlign = 'center';
-    ctx.fillText(obj.id, obj.x + 50, obj.y + 12);
+    ctx.fillText(obj.id, obj.x + 50, obj.y + 18);
   }
 
 };
