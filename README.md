@@ -1,6 +1,8 @@
-# Multiplayer HTML5 Osmos
+# Multiplayer HTML5 Pong
 
-A tech demo inspired by Osmos.  For more information read the article here: http://smus.com/multiplayer-html5-games-with-node
+The game of pong. Control the paddle using a mouse or by touch. Built using html5, node.js, and websockets. 
+
+Built on top of: https://github.com/borismus/osmus
 
 # Running
 
@@ -12,12 +14,11 @@ A tech demo inspired by Osmos.  For more information read the article here: http
 
 # Compatibility
 
-Osmus has been tested on Chrome 13 as well as iPads on iOS 4+.
-
-* Known issues in Firefox 5+ (you can still observe)
+Pong has been tested on Chrome for Android, Chrome 25, Firefox 19, and IE 10
 
 # TODO
 
+* Revamp UI/Music
 * Switch to require.js in browser and separate game.js into components
 * Resizing viewports
 * Support binary sockets
